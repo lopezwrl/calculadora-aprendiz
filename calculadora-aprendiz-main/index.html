@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Calculadora de rescisão profissional para jovem aprendiz. Cálculos precisos conforme Lei 10.097/2000 e CLT.">
+    <meta name="theme-color" content="#26478c">
+    <meta name="color-scheme" content="light">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Calculadora de Rescisão | Jovem Aprendiz</title>
+    <script>
+        // Aplica o tema ANTES do CSS pintar a tela — evita o "flash" de claro
+        // antes do escuro carregar, que é o erro mais comum em dark mode feito
+        // só via JS no final da página.
+        (function () {
+            try {
+                var salvo = localStorage.getItem('rescisao-tema');
+                var tema = (salvo === 'light' || salvo === 'dark')
+                    ? salvo
+                    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', tema);
+            } catch (e) { /* localStorage indisponível (modo privado) — segue no claro padrão */ }
+        })();
+    </script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="appLoader" class="app-loader" role="status" aria-live="polite" aria-label="Carregando a calculadora">
+        <span class="app-loader-mark">
+            <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2v20"/>
+                <path d="M5 6h14"/>
+                <path d="M5 6l-3 7a3.5 3.5 0 0 0 7 0z"/>
+                <path d="M19 6l-3 7a3.5 3.5 0 0 0 7 0z"/>
+                <path d="M8 22h8"/>
+            </svg>
+        </span>
+        <span class="app-loader-text">Rescisão Aprendiz</span>
+        <span class="app-loader-bar"></span>
+    </div>
+
+    <div id="appContainer" class="app-container">
+
+        <nav class="navbar" role="navigation" aria-label="Navegação principal">
+            <div class="navbar-brand">
+                <span class="brand-icon">
+                    <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 2v20"/>
+                        <path d="M5 6h14"/>
+                        <path d="M5 6l-3 7a3.5 3.5 0 0 0 7 0z"/>
+                        <path d="M19 6l-3 7a3.5 3.5 0 0 0 7 0z"/>
+                        <path d="M8 22h8"/>
+                    </svg>
+                </span>
+                <span class="brand-text">Rescisão Aprendiz</span>
+            </div>
+            <div class="nav-actions">
+                <button class="nav-icon-btn" id="historyBtn" aria-label="Ver histórico de cálculos" title="Histórico">
+                    <span class="icon">
+                        <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 3v5h5"/>
+                            <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+                            <path d="M12 7v5l4 2"/>
+                        </svg>
+                    </span>
+                </button>
+                <button class="nav-icon-btn" id="themeToggle" aria-label="Alternar tema claro/escuro" title="Alternar tema">
+                    <span class="theme-toggle-icon">
+                        <svg class="icon-svg icon-sun" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="4"/>
+                            <path d="M12 2v2"/><path d="M12 20v2"/>
+                            <path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/>
+                            <path d="M2 12h2"/><path d="M20 12h2"/>
+                            <path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/>
+                        </svg>
+                        <svg class="icon-svg icon-moon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                        </svg>
+                    </span>
+                </button>
+                <button class="nav-help" id="navHelp" aria-label="Abrir informações" title="Informações sobre a Lei">
+                    <span class="icon">
+                        <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-wrapper">
+
+            <section class="form-wrapper" aria-labelledby="form-heading">
+                <div class="form-header">
+                    <h1 id="form-heading" class="form-title">Cálculo de Rescisão</h1>
+                    <p class="form-subtitle">Escolha o que você quer calcular. Só vamos pedir os dados necessários para isso.</p>
+                </div>
+
+                <form id="rescisaoForm" class="calculation-form" novalidate>
+
+                    <fieldset class="form-fieldset">
+                        <legend class="fieldset-legend">O que você quer calcular?</legend>
+                        <p class="fieldset-hint">Marque um, dois, três ou todos. Cada item é calculado de forma independente — você não precisa preencher dados de cálculos que não quer fazer.</p>
+
+                        <div class="calc-selector-grid" id="calcSelectorGrid">
+                            <label class="calc-option" for="calcSaldo" data-tipo="saldo">
+                                <input type="checkbox" class="calc-checkbox" id="calcSaldo" name="calcTipos" value="saldo" data-group="grupoSaldo">
+                                <svg class="icon-svg calc-option-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="2" y="6" width="20" height="12" rx="2"/>
+                                    <circle cx="12" cy="12" r="2.5"/>
+                                    <path d="M6 10h.01"/>
+                                    <path d="M18 14h.01"/>
+                                </svg>
+                                <span class="calc-option-body">
+                                    <span class="calc-option-title">Saldo de Salário</span>
+                                    <span class="calc-option-desc">Dias trabalhados no último mês</span>
+                                </span>
+                            </label>
+
+                            <label class="calc-option" for="calcDecimo13" data-tipo="decimo13">
+                                <input type="checkbox" class="calc-checkbox" id="calcDecimo13" name="calcTipos" value="decimo13" data-group="grupoDecimo13">
+                                <svg class="icon-svg calc-option-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="8" width="18" height="4" rx="1"/>
+                                    <path d="M12 8v13"/>
+                                    <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>
+                                    <path d="M7.5 8a2.5 2.5 0 0 1 0-5C10.5 3 12 8 12 8s1.5-5 4.5-5a2.5 2.5 0 0 1 0 5"/>
+                                </svg>
+                                <span class="calc-option-body">
+                                    <span class="calc-option-title">13º Salário</span>
+                                    <span class="calc-option-desc">Proporcional aos meses completos no ano</span>
+                                </span>
+                            </label>
+
+                            <label class="calc-option" for="calcFerias" data-tipo="ferias">
+                                <input type="checkbox" class="calc-checkbox" id="calcFerias" name="calcTipos" value="ferias" data-group="grupoFerias">
+                                <svg class="icon-svg calc-option-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 3v18"/>
+                                    <path d="M3 13a9 6 0 0 1 18 0z"/>
+                                    <path d="M12 17l-3 4"/>
+                                    <path d="M12 17l3 4"/>
+                                </svg>
+                                <span class="calc-option-body">
+                                    <span class="calc-option-title">Férias + 1/3</span>
+                                    <span class="calc-option-desc">Férias proporcionais e o adicional de 1/3</span>
+                                </span>
+                            </label>
+
+                            <label class="calc-option" for="calcFgts" data-tipo="fgts">
+                                <input type="checkbox" class="calc-checkbox" id="calcFgts" name="calcTipos" value="fgts" data-group="grupoFgts">
+                                <svg class="icon-svg calc-option-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <ellipse cx="12" cy="13" rx="8" ry="6"/>
+                                    <path d="M9 7.5c0-2.2 1.5-3.5 3-3.5"/>
+                                    <circle cx="16" cy="11" r="0.6" fill="currentColor" stroke="none"/>
+                                    <path d="M4 14l-2-1"/>
+                                    <path d="M9 19v2"/>
+                                    <path d="M15 19v2"/>
+                                </svg>
+                                <span class="calc-option-body">
+                                    <span class="calc-option-title">FGTS (2%)</span>
+                                    <span class="calc-option-desc">Estimativa do FGTS do aprendiz</span>
+                                </span>
+                            </label>
+
+                            <label class="calc-option" for="calcIndenizacao" data-tipo="indenizacao">
+                                <input type="checkbox" class="calc-checkbox" id="calcIndenizacao" name="calcTipos" value="indenizacao" data-group="grupoIndenizacao">
+                                <svg class="icon-svg calc-option-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 3v18"/>
+                                    <path d="M5 7h14"/>
+                                    <path d="M5 7l-3 6a3.5 3.5 0 0 0 7 0z"/>
+                                    <path d="M19 7l-3 6a3.5 3.5 0 0 0 7 0z"/>
+                                    <path d="M8 21h8"/>
+                                </svg>
+                                <span class="calc-option-body">
+                                    <span class="calc-option-title">Indenização (Art. 479)</span>
+                                    <span class="calc-option-desc">Só se a empresa encerrou o contrato antes do prazo</span>
+                                </span>
+                            </label>
+
+                            <label class="calc-option" for="calcLiquido" data-tipo="liquido">
+                                <input type="checkbox" class="calc-checkbox" id="calcLiquido" name="calcTipos" value="liquido" data-group="grupoLiquido">
+                                <svg class="icon-svg calc-option-icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="16" rx="2"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                    <line x1="7" y1="15" x2="13" y2="15"/>
+                                </svg>
+                                <span class="calc-option-body">
+                                    <span class="calc-option-title">Salário Bruto x Líquido</span>
+                                    <span class="calc-option-desc">Quanto sobra depois do INSS e outros descontos</span>
+                                </span>
+                            </label>
+                        </div>
+                        <span class="field-error" id="error-calcTipos" role="alert"></span>
+                    </fieldset>
+
+                    <fieldset class="form-fieldset">
+                        <legend class="fieldset-legend">Identificação <span class="legend-optional">(opcional)</span></legend>
+                        <p class="fieldset-hint">Só aparece no topo do resultado. Não é usado em nenhuma conta.</p>
+
+                        <div class="form-grid form-grid-2">
+                            <div class="form-field">
+                                <label for="nomeFuncionario" class="field-label">Nome do Aprendiz</label>
+                                <input
+                                    type="text"
+                                    id="nomeFuncionario"
+                                    name="nomeFuncionario"
+                                    placeholder="Ex: João Silva Santos"
+                                    class="field-input"
+                                    autocomplete="name"
+                                />
+                            </div>
+
+                            <div class="form-field">
+                                <label for="dataAdmissao-dia" class="field-label" id="label-dataAdmissao">Data de Admissão</label>
+                                <input type="hidden" id="dataAdmissao" name="dataAdmissao" />
+                                <div class="date-input-group" role="group" aria-labelledby="label-dataAdmissao" data-date-group="dataAdmissao">
+                                    <input type="text" id="dataAdmissao-dia" class="date-segment date-segment-day" data-seg="dia" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="DD" aria-label="Dia da admissão" />
+                                    <span class="date-sep" aria-hidden="true">/</span>
+                                    <input type="text" id="dataAdmissao-mes" class="date-segment date-segment-month" data-seg="mes" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="MM" aria-label="Mês da admissão" />
+                                    <span class="date-sep" aria-hidden="true">/</span>
+                                    <input type="text" id="dataAdmissao-ano" class="date-segment date-segment-year" data-seg="ano" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="AAAA" aria-label="Ano da admissão" />
+                                </div>
+                                <span class="field-error" id="error-dataAdmissao" role="alert"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-grid form-grid-2">
+                            <div class="form-field">
+                                <label for="dataSaida-dia" class="field-label" id="label-dataSaida">Data de Saída</label>
+                                <input type="hidden" id="dataSaida" name="dataSaida" />
+                                <div class="date-input-group" role="group" aria-labelledby="label-dataSaida" data-date-group="dataSaida">
+                                    <input type="text" id="dataSaida-dia" class="date-segment date-segment-day" data-seg="dia" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="DD" aria-label="Dia da saída" />
+                                    <span class="date-sep" aria-hidden="true">/</span>
+                                    <input type="text" id="dataSaida-mes" class="date-segment date-segment-month" data-seg="mes" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="MM" aria-label="Mês da saída" />
+                                    <span class="date-sep" aria-hidden="true">/</span>
+                                    <input type="text" id="dataSaida-ano" class="date-segment date-segment-year" data-seg="ano" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="AAAA" aria-label="Ano da saída" />
+                                </div>
+                                <span class="field-error" id="error-dataSaida" role="alert"></span>
+                            </div>
+                            <div class="form-field"></div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-fieldset calc-group hidden" id="grupoSalario">
+                        <legend class="fieldset-legend">Salário Base</legend>
+
+                        <div class="form-grid form-grid-2">
+                            <div class="form-field">
+                                <label for="salarioBase" class="field-label">
+                                    Salário Base <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-addon">R$</span>
+                                    <input
+                                        type="text"
+                                        id="salarioBase"
+                                        name="salarioBase"
+                                        placeholder="0,00"
+                                        class="field-input input-currency"
+                                        inputmode="decimal"
+                                    />
+                                </div>
+                                <p class="field-hint">
+                                    Usado em todos os cálculos que você marcou acima. Digite sempre o
+                                    <strong>salário bruto</strong> — o valor combinado no contrato, <em>antes</em> de qualquer desconto
+                                    (INSS, vale-transporte, vale-alimentação etc.). Se você marcou "Salário Bruto x Líquido" abaixo,
+                                    é ali que mostramos quanto sobra depois desses descontos.
+                                </p>
+                                <span class="field-error" id="error-salarioBase" role="alert"></span>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="useValeTransporte" class="field-label checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        id="useValeTransporte"
+                                        name="useValeTransporte"
+                                        class="field-checkbox"
+                                    />
+                                    <span class="checkbox-text">Desconta Vale-Transporte (máx 6%)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-fieldset calc-group hidden" id="grupoSaldo">
+                        <legend class="fieldset-legend">Saldo de Salário</legend>
+                        <div class="form-grid form-grid-2">
+                            <div class="form-field">
+                                <label for="diasTrabalhados" class="field-label">
+                                    Dias Trabalhados (último mês) <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input
+                                        type="number"
+                                        id="diasTrabalhados"
+                                        name="diasTrabalhados"
+                                        placeholder="22"
+                                        class="field-input"
+                                        min="0"
+                                        max="31"
+                                    />
+                                    <span class="input-addon-right">dias</span>
+                                </div>
+                                <p class="field-hint">Quantos dias você trabalhou no mês em que saiu</p>
+                                <span class="field-error" id="error-diasTrabalhados" role="alert"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-fieldset calc-group hidden" id="grupoDecimo13">
+                        <legend class="fieldset-legend">13º Salário</legend>
+                        <div class="form-grid form-grid-2">
+                            <div class="form-field">
+                                <label for="meses13Salario" class="field-label">
+                                    Meses Completos no Ano <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input
+                                        type="number"
+                                        id="meses13Salario"
+                                        name="meses13Salario"
+                                        placeholder="12"
+                                        class="field-input"
+                                        min="0"
+                                        max="12"
+                                    />
+                                    <span class="input-addon-right">meses</span>
+                                </div>
+                                <p class="field-hint">Um mês com 15 dias trabalhados ou mais conta como mês completo</p>
+                                <span class="field-error" id="error-meses13Salario" role="alert"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-fieldset calc-group hidden" id="grupoFerias">
+                        <legend class="fieldset-legend">Férias + 1/3</legend>
+                        <div class="form-grid form-grid-2">
+                            <div class="form-field">
+                                <label for="mesesFerias" class="field-label">
+                                    Meses Acumulados para Férias <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input
+                                        type="number"
+                                        id="mesesFerias"
+                                        name="mesesFerias"
+                                        placeholder="12"
+                                        class="field-input"
+                                        min="0"
+                                        max="60"
+                                    />
+                                    <span class="input-addon-right">meses</span>
+                                </div>
+                                <p class="field-hint">Contando desde a última vez que você tirou férias</p>
+                                <span class="field-error" id="error-mesesFerias" role="alert"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-fieldset calc-group hidden" id="grupoFgts">
+                        <legend class="fieldset-legend">FGTS</legend>
+                        <div class="form-grid form-grid-2">
+                            <div class="form-field">
+                                <label for="diasFGTS" class="field-label">
+                                    Dias com FGTS Acumulado <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input
+                                        type="number"
+                                        id="diasFGTS"
+                                        name="diasFGTS"
+                                        placeholder="730"
+                                        class="field-input"
+                                        min="0"
+                                    />
+                                    <span class="input-addon-right">dias</span>
+                                </div>
+                                <p class="field-hint">Total de dias trabalhados desde a admissão. FGTS do aprendiz é 2% (Lei 10.097/2000)</p>
+                                <span class="field-error" id="error-diasFGTS" role="alert"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-fieldset calc-group hidden" id="grupoIndenizacao">
+                        <legend class="fieldset-legend">Indenização (Art. 479)</legend>
+                        <p class="fieldset-hint">Só se aplica quando a empresa encerra o contrato antes do prazo, sem justa causa.</p>
+                        <div class="form-grid form-grid-2">
+                            <div class="form-field">
+                                <label for="mesesRestantes" class="field-label">
+                                    Meses que Faltavam para o Fim do Contrato <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input
+                                        type="number"
+                                        id="mesesRestantes"
+                                        name="mesesRestantes"
+                                        placeholder="6"
+                                        class="field-input"
+                                        min="0"
+                                        max="24"
+                                    />
+                                    <span class="input-addon-right">meses</span>
+                                </div>
+                                <p class="field-hint">Contrato de aprendiz dura no máximo 2 anos (24 meses)</p>
+                                <span class="field-error" id="error-mesesRestantes" role="alert"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="form-fieldset calc-group hidden" id="grupoLiquido">
+                        <legend class="fieldset-legend">Salário Bruto x Líquido</legend>
+                        <p class="fieldset-hint">
+                            <strong>Salário bruto</strong> é o valor cheio, sem nenhum desconto — o que está escrito no contrato.
+                            <strong>Salário líquido</strong> é o que efetivamente cai na conta, depois de descontar o INSS
+                            (obrigatório por lei) e, se for o seu caso, o vale-transporte e o vale-alimentação/refeição.
+                            Marque "Desconta Vale-Transporte" acima, se for o seu caso, e preencha o vale-alimentação abaixo se quiser incluir.
+                        </p>
+                        <div class="form-grid form-grid-2">
+                            <div class="form-field">
+                                <label for="valorValeAlimentacao" class="field-label">
+                                    Desconto de Vale-Alimentação/Refeição <span class="legend-optional">(opcional)</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-addon">R$</span>
+                                    <input
+                                        type="text"
+                                        id="valorValeAlimentacao"
+                                        name="valorValeAlimentacao"
+                                        placeholder="0,00"
+                                        class="field-input input-currency"
+                                        inputmode="decimal"
+                                    />
+                                </div>
+                                <p class="field-hint">Só preencha se a empresa descontar algum valor do VA/VR do seu holerite. Deixe em branco se não houver esse desconto.</p>
+                                <span class="field-error" id="error-valorValeAlimentacao" role="alert"></span>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <span class="btn-icon">
+                                <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="4" y="2" width="16" height="20" rx="2"/>
+                                    <line x1="8" y1="6" x2="16" y2="6"/>
+                                    <circle cx="8" cy="10.5" r="0.6" fill="currentColor" stroke="none"/>
+                                    <circle cx="12" cy="10.5" r="0.6" fill="currentColor" stroke="none"/>
+                                    <circle cx="16" cy="10.5" r="0.6" fill="currentColor" stroke="none"/>
+                                    <circle cx="8" cy="14.5" r="0.6" fill="currentColor" stroke="none"/>
+                                    <circle cx="12" cy="14.5" r="0.6" fill="currentColor" stroke="none"/>
+                                    <circle cx="16" cy="14.5" r="0.6" fill="currentColor" stroke="none"/>
+                                    <circle cx="8" cy="18.5" r="0.6" fill="currentColor" stroke="none"/>
+                                    <circle cx="12" cy="18.5" r="0.6" fill="currentColor" stroke="none"/>
+                                    <circle cx="16" cy="18.5" r="0.6" fill="currentColor" stroke="none"/>
+                                </svg>
+                            </span>
+                            <span class="btn-text">Calcular</span>
+                        </button>
+                        <button type="reset" class="btn btn-secondary btn-lg" id="resetBtn">
+                            <span class="btn-icon">
+                                <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+                                    <path d="M3 3v5h5"/>
+                                </svg>
+                            </span>
+                            <span class="btn-text">Limpar</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section id="resultsSection" class="results-wrapper hidden" aria-labelledby="results-heading" aria-live="polite" aria-atomic="true">
+                <div class="results-header">
+                    <h2 id="results-heading" class="results-title">Resultado</h2>
+                    <div class="results-info">
+                        <span id="infoAprendiz" class="info-label hidden"></span>
+                        <span id="infoPeriodo" class="info-label hidden"></span>
+                    </div>
+                </div>
+
+                <div id="resultadosContainer" class="results-grid">
+
+                </div>
+
+                <div class="results-footer">
+                    <p class="disclaimer">
+                        <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <span><strong>Estimativa Educacional:</strong> Consulte um profissional de RH/jurídico para valores oficiais.</span>
+                    </p>
+                    <div class="results-actions">
+                        <button type="button" class="btn btn-secondary" id="exportPdfBtn" aria-label="Baixar resultado em PDF">
+                            <span class="icon">
+                                <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                            </span>
+                            <span class="btn-text">Baixar PDF</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="printBtn" aria-label="Imprimir cálculo">
+                            <span class="icon">
+                                <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="6 9 6 2 18 2 18 9"/>
+                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                    <rect x="6" y="14" width="12" height="8"/>
+                                </svg>
+                            </span>
+                            Imprimir
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="newCalcBtn" aria-label="Novo cálculo">
+                            <span class="icon">
+                                <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                            Novo Cálculo
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="infoModal" class="modal hidden" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+            <div class="modal-overlay" id="modalOverlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle" class="modal-title">Legislação e Direitos</h2>
+                    <button class="modal-close" id="modalClose" aria-label="Fechar janela">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-section">
+                        <h3>
+                            <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <line x1="10" y1="9" x2="8" y2="9"/>
+                            </svg>
+                            Base Legal
+                        </h3>
+                        <ul>
+                            <li><strong>Lei nº 10.097/2000:</strong> Regulamenta contrato de aprendizado</li>
+                            <li><strong>CLT Arts. 475-490:</strong> Rescisão de contrato de trabalho</li>
+                            <li><strong>CLT Art. 479:</strong> Indenização por rescisão antecipada</li>
+                            <li><strong>CF/88 Art. 7º, XVII:</strong> Férias + 1/3 constitucional</li>
+                            <li><strong>IN SRPS/INSS nº 120:</strong> FGTS Aprendiz 2%</li>
+                        </ul>
+                    </div>
+                    <div class="modal-section">
+                        <h3>
+                            <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 18h6"/>
+                                <path d="M10 22h4"/>
+                                <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.3h6c0-1.1.4-1.8 1-2.3A7 7 0 0 0 12 2z"/>
+                            </svg>
+                            Informações Importantes
+                        </h3>
+                        <ul>
+                            <li>Você pode calcular só o que quiser: um item, alguns, ou todos ao mesmo tempo</li>
+                            <li>Contrato de aprendiz tem duração máxima de <strong>2 anos</strong></li>
+                            <li>FGTS do aprendiz: <strong>2%</strong> (não 8% da CLT comum)</li>
+                            <li>Férias proporcionais + <strong>1/3 constitucional</strong> são direitos</li>
+                            <li>Rescisão sem justa causa = metade dos salários restantes (Art. 479)</li>
+                            <li>Vale-transporte desconto máximo: <strong>6%</strong> do salário</li>
+                        </ul>
+                    </div>
+                    <div class="modal-section">
+                        <h3>
+                            <svg class="icon-svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            Disclaimer
+                        </h3>
+                        <p>
+                            Esta calculadora fornece uma <strong>estimativa educacional</strong> baseada na legislação vigente até 2024.
+                            Para valores oficiais e orientação jurídica, consulte:
+                        </p>
+                        <ul>
+                            <li>Departamento de RH da empresa</li>
+                            <li>Advogado especialista em Direito do Trabalho</li>
+                            <li>Sindicato da categoria</li>
+                            <li>Portal: trabalho.gov.br</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="historyModal" class="modal hidden" role="dialog" aria-labelledby="historyModalTitle" aria-hidden="true">
+            <div class="modal-overlay" id="historyModalOverlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="historyModalTitle" class="modal-title">Histórico de Cálculos</h2>
+                    <button class="modal-close" id="historyModalClose" aria-label="Fechar janela">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="fieldset-hint history-hint">
+                        Salvo só neste navegador (localStorage). Ninguém mais vê isso, e você pode apagar quando quiser.
+                    </p>
+                    <div id="historyList" class="history-list">
+
+                    </div>
+                    <div id="historyEmpty" class="history-empty hidden">
+                        <p>Nenhum cálculo salvo ainda. Faça um cálculo e ele aparece aqui.</p>
+                    </div>
+                    <button type="button" class="btn btn-secondary history-clear-btn" id="historyClearBtn">
+                        Limpar Histórico
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="script.js" defer></script>
+</body>
+</html>
