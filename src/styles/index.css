@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-azul: #002893;
+  --color-branco: #FFFFFF;
+  --color-laranja: #FD701C;
+  --color-tinta: #08122E;
+
+  --bg-page: #EEF2F9;
+  --bg-surface: #FFFFFF;
+  --bg-surface-subtle: #E4EBF7;
+  --bg-input: #F4F7FC;
+
+  --border-default: #C2CEE6;
+  --border-strong: #8599C4;
+  --border-input: #7A90BF;
+
+  --text-primary: #08122E;
+  --text-secondary: #2B3B63;
+  --text-muted: #4A5B87;
+
+  --brand-primary: #002893;
+  --brand-hover: #001D6E;
+
+  --status-success: #0B5D3B;
+  --status-success-bg: #E8F5EF;
+  --status-warning: #8A3B08;
+  --status-warning-bg: #FFF3EB;
+  --status-error: #9E1C1C;
+  --status-error-bg: #FDF0F0;
+
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  --bg-page: #040A1E;
+  --bg-surface: #0A1740;
+  --bg-surface-subtle: #11235E;
+  --bg-input: #060E2B;
+
+  --border-default: #253F8E;
+  --border-strong: #4A69C2;
+  --border-input: #5273CF;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #D0DBF5;
+  --text-muted: #9EB2E0;
+
+  --brand-primary: #FD701C;
+  --brand-hover: #FF8740;
+
+  --status-success: #7CE5B5;
+  --status-success-bg: rgba(11, 93, 59, 0.35);
+  --status-warning: #FFB080;
+  --status-warning-bg: rgba(253, 112, 28, 0.18);
+  --status-error: #FCA5A5;
+  --status-error-bg: rgba(158, 28, 28, 0.3);
+
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: 'Bricolage Grotesque', 'DM Sans', system-ui, sans-serif;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-laranja);
+    outline-offset: 2px;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Campos com alto contraste de borda e fundo próprio para nunca camuflarem no cartão */
+.campo-tactile {
+  height: 44px;
+  width: 100%;
+  border-radius: 10px;
+  border: 2px solid var(--border-input);
+  background-color: var(--bg-input);
+  padding: 0 14px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.campo-tactile:hover {
+  border-color: var(--brand-primary);
+}
+
+.campo-tactile:focus {
+  outline: none;
+  border-color: var(--color-laranja);
+  background-color: var(--bg-surface);
+  box-shadow: 0 0 0 4px rgba(253, 112, 28, 0.18);
+}
+
+.grupo-moeda-tactile {
+  display: flex;
+  height: 48px;
+  align-items: center;
+  border-radius: 10px;
+  border: 2px solid var(--border-input);
+  background-color: var(--bg-input);
+  overflow: hidden;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.grupo-moeda-tactile:hover {
+  border-color: var(--brand-primary);
+}
+
+.grupo-moeda-tactile:focus-within {
+  border-color: var(--color-laranja);
+  background-color: var(--bg-surface);
+  box-shadow: 0 0 0 4px rgba(253, 112, 28, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #08122E !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only-full {
+    max-width: 100% !important;
+    box-shadow: none !important;
+  }
+}

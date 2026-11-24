@@ -1,172 +1,55 @@
-# Calculadora de Rescisão — Jovem Aprendiz
+# Calculadora CLT Teresina
 
-Aplicação **100% front-end** (HTML + CSS + JavaScript puro, sem build/backend) que calcula estimativas de verbas rescisórias para contratos de **Jovem Aprendiz**, com base na Lei nº 10.097/2000 e na CLT. Permite escolher só o que precisa calcular, mostra a conta explicada passo a passo, guarda histórico local e exporta o resultado em PDF ou impressão.
+Aplicação front-end para simulação de folha mensal, décimo terceiro salário e rescisão contratual de trabalhadores sob regime CLT e aprendizagem em Teresina, Piauí. Inclui importação 100% local de holerite em PDF ou imagem com revisão assistida e conferência cruzada.
 
----
-
-## Índice
-
-- [Principais funcionalidades](#principais-funcionalidades)
-- [O que pode ser calculado](#o-que-pode-ser-calculado)
-- [Como os cálculos funcionam](#como-os-cálculos-funcionam)
-- [Arquitetura do código](#arquitetura-do-código)
-- [Estrutura do projeto](#estrutura-do-projeto)
-- [Stack utilizada](#stack-utilizada)
-- [Como rodar localmente](#como-rodar-localmente)
-- [Persistência de dados](#persistência-de-dados)
-- [Acessibilidade](#acessibilidade)
-- [Avisos legais / limitações](#avisos-legais--limitações)
-
----
-
-## Principais funcionalidades
-
-- **Cálculo seletivo**: o usuário marca só os itens que quer calcular (um, vários ou todos) — os campos exigidos no formulário mudam dinamicamente conforme a seleção, e nada além do necessário é pedido.
-- **Explicação didática**: cada resultado vem acompanhado de um texto que mostra a conta passo a passo (não é só o número final).
-- **Formatação de moeda em tempo real**: o campo de salário/valores é formatado como `R$ 0,00` enquanto o usuário digita.
-- **Campo de data segmentado** (dia/mês/ano em inputs separados) com validação e navegação automática entre os segmentos.
-- **Histórico local**: os últimos 15 cálculos ficam salvos no navegador (`localStorage`), com opção de remover um item específico ou limpar tudo.
-- **Exportação em PDF**: gera um PDF da tela de resultado usando `html2canvas` + `jsPDF`, com fallback automático para a opção de impressão do navegador se as bibliotecas não carregarem.
-- **Impressão direta** do resultado.
-- **Tema claro/escuro**: aplicado antes mesmo do CSS carregar (evita "flash" de tema errado), com detecção da preferência do sistema (`prefers-color-scheme`) e opção de alternância manual persistida.
-- **Modal de legislação**: base legal, informações importantes sobre o contrato de aprendiz e disclaimer, acessível a qualquer momento pelo botão de ajuda.
-- **Acessível**: uso extensivo de atributos ARIA, `role`, foco gerenciado nos modais e mensagens de erro associadas aos campos.
-- **Respeita `prefers-reduced-motion`**: animações de entrada (scroll reveal) e efeito *ripple* dos botões são desativados se o usuário preferir menos movimento no sistema operacional.
-
----
-
-## O que pode ser calculado
-
-| Cálculo | Campo(s) exigido(s) | Base |
-|---|---|---|
-| **Saldo de Salário** | Dias trabalhados no último mês | Salário ÷ 30 dias × dias trabalhados |
-| **13º Salário** | Meses completos no ano | Salário ÷ 12 × meses completos |
-| **Férias + 1/3** | Meses acumulados para férias | Salário ÷ 12 × meses acumulados, + 1/3 constitucional sobre esse valor |
-| **FGTS (2%)** | Dias com FGTS acumulado | 2% do salário por mês (alíquota reduzida do aprendiz, ante os 8% da CLT comum) |
-| **Indenização (Art. 479 CLT)** | Meses que faltavam para o fim do contrato | Metade dos salários restantes até o fim do contrato — só se aplica quando a empresa encerra o contrato antes do prazo, sem justa causa |
-| **Salário Bruto x Líquido** | (usa o salário base + desconto opcional de VT/VA) | Salário bruto − INSS (tabela progressiva) − vale-transporte (até 6%, opcional) − vale-alimentação/refeição (opcional) |
-
-O **Salário Base** é sempre pedido assim que qualquer item acima é marcado, pois é usado como entrada de todos os cálculos.
-
----
-
-## Como os cálculos funcionam
-
-Toda a lógica está centralizada na classe `CalculadoraRescisao` (`script.js`), com as constantes legais isoladas em `CONFIG`:
-
-```js
-FGTS_APRENDIZ_ALIQUOTA: 0.02        // 2% (vs. 8% da CLT comum)
-TERCO_CONSTITUCIONAL_ALIQUOTA: 1/3
-VALE_TRANSPORTE_MAX: 0.06           // 6% do salário
-DIAS_MES_CALCULO: 30
-MESES_ANO: 12
-DURACAO_CONTRATO_APRENDIZ: 2        // anos
-
-INSS_FAIXAS: [                      // tabela progressiva vigente desde jan/2026
-  { limite: 1621.00, aliquota: 0.075 },
-  { limite: 2902.84, aliquota: 0.09  },
-  { limite: 4354.27, aliquota: 0.12  },
-  { limite: 8475.55, aliquota: 0.14  },
-]
-```
-
-O **INSS** é calculado por faixas progressivas (não é uma alíquota única sobre o salário inteiro): cada faixa de salário paga sua própria alíquota, e o desconto total é a soma do valor de cada faixa — exatamente como funciona a tabela oficial.
-
-Cada cálculo tem, além do método que retorna o valor numérico, uma função em `Explicacoes` que monta o texto explicativo mostrado junto ao resultado (ex.: "seu salário dividido por 30 dias dá X por dia, você trabalhou Y dias, então X × Y = resultado").
-
----
-
-## Arquitetura do código
-
-Tudo em um único `script.js`, organizado em classes utilitárias (a maioria com métodos estáticos, sem estado próprio de instância) com responsabilidades bem separadas:
-
-| Classe | Responsabilidade |
-|---|---|
-| `GerenciadorSeletor` | Mostra/esconde os blocos de campos conforme os checkboxes de "o que calcular" marcados, e ajusta quais campos são `required`. |
-| `Validador` | Valida o formulário (datas, valores numéricos, intervalos por tipo de cálculo) e exibe/limpa mensagens de erro por campo. |
-| `Formatador` | Formatação de moeda (`Intl.NumberFormat`), datas, máscara de input de moeda em tempo real, e checagem de `prefers-reduced-motion`. |
-| `CalculadoraRescisao` | O motor de cálculo: recebe os dados do formulário e expõe um método por tipo de verba. |
-| `Explicacoes` | Gera o texto "como calculamos" para cada tipo de resultado. |
-| `GerenciadorResultados` | Monta os cards de resultado na tela a partir dos tipos selecionados. |
-| `GerenciadorDestaque` | Realces visuais no resultado (ex.: total). |
-| `GerenciadorTema` | Alternância e persistência do tema claro/escuro. |
-| `GerenciadorHistorico` | CRUD do histórico local (salvar, listar, remover item, limpar tudo) via `localStorage`. |
-| `GerenciadorExportacao` | Geração do PDF (`html2canvas` + `jsPDF`), com cálculo de escala segura para não estourar o limite de área do canvas, e fallback para impressão em caso de erro. |
-| `GerenciadorModal` | Abertura/fechamento do modal de legislação (com suporte a tecla Esc). |
-| `GerenciadorScrollReveal` | Animação de entrada dos blocos do formulário ao rolar a página (via `IntersectionObserver`). |
-| `GerenciadorImpressao` | Aciona `window.print()`. |
-| `GerenciadorDataSegmentada` | Lógica dos inputs de data separados por dia/mês/ano (navegação automática entre segmentos, validação). |
-| `GerenciadorSplash` | Tela de carregamento inicial (loader). |
-| `GerenciadorFormulario` | Orquestra o envio do formulário: coleta os dados, valida, dispara o cálculo e exibe o resultado; também trata reset e "novo cálculo". |
-| `GerenciadorRipple` | Efeito visual de "onda" ao clicar nos botões. |
-
-Tudo é inicializado em um único listener de `DOMContentLoaded`, chamando o `init()` de cada gerenciador na ordem em que faz sentido (splash → tema → seletor de cálculo → campos de data → formulário → modal → histórico → animações → ripple).
-
----
-
-## Estrutura do projeto
-
-```
-calculadora-aprendiz-main/
-├── index.html        # Marcação da página: formulário, seção de resultado, modais
-├── script.js          # Toda a lógica: cálculo, validação, formatação, histórico, exportação
-├── style.css           # Estilos, incluindo tema claro/escuro
-└── videoex.mp4          # Vídeo de exemplo/demonstração (não referenciado no código)
-```
-
-Não há build, bundler ou dependências de backend — é um site estático que roda abrindo o `index.html` direto no navegador ou hospedando em qualquer servidor de arquivos estáticos.
-
----
-
-## Stack utilizada
-
-- **HTML5** semântico, com atributos ARIA para acessibilidade.
-- **CSS puro**, com variáveis CSS para o tema claro/escuro.
-- **JavaScript puro (ES6+)**, sem frameworks nem bundler.
-- **[html2canvas](https://html2canvas.hertzen.com/)** (via CDN) — captura a seção de resultado como imagem para montar o PDF.
-- **[jsPDF](https://github.com/parallax/jsPDF)** (via CDN) — geração do arquivo PDF a partir da imagem capturada.
-
----
-
-## Como rodar localmente
-
-Por ser um site estático, basta abrir o arquivo diretamente ou servir a pasta:
+## Como executar
 
 ```bash
-# Opção 1: abrir direto
-# basta dar duplo clique no index.html
-
-# Opção 2: servir com um servidor HTTP simples (recomendado, evita
-# restrições de alguns navegadores com arquivos abertos via file://)
-cd calculadora-aprendiz-main
-python -m http.server 8000
-# depois acessar http://localhost:8000
+npm install
+npm run dev
 ```
 
----
+Comandos auxiliares:
 
-## Persistência de dados
+```bash
+npm test
+npm run build
+```
 
-Não há backend nem banco de dados — tudo roda no navegador do próprio usuário:
+## Arquitetura de pastas
 
-- **Tema escolhido**: `localStorage`, chave `rescisao-tema`.
-- **Histórico de cálculos** (até 15 itens mais recentes): `localStorage`, chave `rescisao-historico`.
+* `src/calc`: funções puras de cálculo trabalhista e conferência cruzada em centavos inteiros, sem acesso ao DOM.
+* `src/config`: parâmetros legais e tributários organizados por ano de vigência (`parametros.ts`).
+* `src/import`: leitura de PDF (`lerPdf.ts`), pré-processamento e OCR em Web Worker (`ocr.ts`), normalização (`normalizar.ts`), dicionário de sinônimos (`dicionario.ts`), extração desacoplada (`extrairCampos.ts`) e conferência (`conferir.ts`).
+* `src/components`: cabeçalho, importador de holerite, resumo ao vivo, resultado expansível, histórico local e modal explicativo.
+* `src/pages`: fluxo em etapas integrado com React Hook Form, Zod e Framer Motion.
+* `src/styles`: tokens visuais nos temas claro e escuro, tipografia tabular e regras de impressão.
 
-Nada é enviado para um servidor; os dados ficam só no navegador de quem está usando, e o próprio app avisa isso na tela de histórico.
+## Parâmetros legais que exigem conferência oficial periódica
 
----
+Todos os parâmetros ficam centralizados em `src/config/parametros.ts`, acompanhados da constante `DATA_ULTIMA_CONFERENCIA`:
 
-## Acessibilidade
+1. **Salário mínimo nacional** (`salarioMinimoCentavos`): conferir decreto federal anual no Portal da Legislação do Planalto.
+2. **Piso salarial aplicável no Piauí** (`pisoEstadualPiauiCentavos`): o Piauí não adota lei complementar estadual de piso regional geral privado, prevalecendo o salário mínimo nacional salvo piso de convenção coletiva local informado no campo opcional da calculadora (conferir no sistema Mediador do MTE para sindicatos de Teresina).
+3. **Faixas e teto do INSS** (`faixasInss`, `tetoInssCentavos`): conferir Portaria Interministerial MPS/MF publicada em janeiro de cada ano.
+4. **Tabela progressiva, dedução por dependente, desconto simplificado e redutor do IRRF** (`faixasIrrf`, `deducaoDependenteCentavos`, `descontoSimplificadoIrrfCentavos`, `redutorIrrf`): conferir tabelas de incidência mensal da Receita Federal (Lei nº 15.191/2025 e Lei nº 15.270/2025).
+5. **Alíquotas e multas do FGTS** (`aliquotaFgtsClt` de 8%, `aliquotaFgtsAprendiz` de 2%, multas de 40% e 20%): conferir Lei nº 8.036/1990, Lei nº 10.097/2000 e art. 484 A da CLT.
 
-- Uso de `role`, `aria-live`, `aria-labelledby`, `aria-hidden` e `aria-invalid` nos formulários, modais e mensagens de erro.
-- Foco e fechamento por tecla `Esc` nos modais (legislação e histórico).
-- Animações desativadas automaticamente quando o sistema indica preferência por menos movimento (`prefers-reduced-motion`).
-- Tema aplicado antes da primeira pintura da página, evitando o "flash" de tema incorreto.
+## Fórmulas aplicadas
 
----
+* **Saldo de salário**: `salário base ÷ 30 × dias trabalhados no mês da saída`, limitando os dias ao mês comercial de 30 dias.
+* **Aviso prévio indenizado (Lei nº 12.506/2011)**: `30 dias + 3 dias por ano completo`, até 90 dias. Pago integralmente na dispensa sem justa causa e pela metade no acordo entre as partes (art. 484 A da CLT). Projeta a data final para contagem de avos de férias e 13º.
+* **Décimo terceiro proporcional**: `salário base ÷ 12 × avos`, contando como mês integral toda fração igual ou superior a 15 dias trabalhados. Na modalidade anual, a 1ª parcela (até 30/11) paga 50% do bruto sem descontos, e a 2ª parcela (até 20/12) desconta integralmente INSS e IRRF.
+* **Férias vencidas e proporcionais**: acrescidas de `1/3` constitucional (e dobradas quando vencido o período concessivo). Na rescisão são verbas indenizatórias isentas de INSS e IRRF.
+* **FGTS**: encargo exclusivo do empregador (8% para CLT e 2% para aprendizagem), nunca deduzido do valor líquido do trabalhador.
+* **INSS**: soma progressiva por faixa sobre a base de contribuição, apurada separadamente para o saldo de salário e para o 13º salário.
+* **IRRF**: aplica a maior dedução entre as deduções legais (INSS mais dependentes) e o desconto simplificado mensal, seguida da tabela progressiva e do redutor mensal vigente.
+* **Vale-transporte**: desativado por padrão; quando ativado, corresponde ao menor valor entre `6%` do salário base proporcional aos dias trabalhados e o benefício mensal efetivamente fornecido.
 
-## Avisos legais / limitações
+## Nota técnica sobre a diferença de R$ 0,15 no INSS do Caso 1
 
-- A própria aplicação deixa claro (no modal de legislação e no rodapé do resultado) que os valores são uma **estimativa educacional**, baseada na legislação vigente até 2024/2026 — não substitui a consulta ao RH da empresa, a um advogado trabalhista, ao sindicato da categoria ou ao portal oficial `trabalho.gov.br`.
-- A tabela de faixas do INSS está fixa no código (`CONFIG.INSS_FAIXAS`) e precisa ser atualizada manualmente quando o governo reajustar os valores.
-- A exportação em PDF depende de dois scripts carregados via CDN (`html2canvas`, `jsPDF`); sem conexão com a internet, a exportação cai automaticamente para a opção de impressão do navegador.
+No caso de referência com salário bruto contratual de `R$ 712,00` (sem dependentes e sem vale-transporte):
+
+* Aplicando `7,5%` diretamente sobre `R$ 712,00`, o desconto de INSS seria `R$ 53,40` e o líquido `R$ 658,60`.
+* No holerite real confirmado, o líquido apurado foi `R$ 658,75`, com desconto de INSS de `R$ 53,25` (diferença de `R$ 0,15`).
+* Essa diferença decorre da coluna **Base INSS** registrada no holerite em `R$ 710,00` (`R$ 710,00 × 7,5% = R$ 53,25`), o que ocorre na prática de folha quando há rubrica não integrante do salário de contribuição ou ajuste de arredondamento de horas contratuais. Por essa razão, a calculadora expõe o campo **Base do INSS** editável (por padrão sincronizado ao salário base) e o importador de holerite captura especificamente a Base do INSS impressa no documento.
