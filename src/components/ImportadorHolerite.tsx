@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { AlertTriangle, Check, HelpCircle } from 'lucide-react';
+import { Camera, Edit3, FileUp } from 'lucide-react';
 import { parseMoedaParaCentavos, TipoContrato } from '../calc';
 import {
   ChaveCampoHolerite,
@@ -60,24 +60,21 @@ const CAMPOS_PRINCIPAIS_REVISAO: ChaveCampoHolerite[] = [
 function EtiquetaConfianca({ nivel }: { nivel: NivelConfianca }) {
   if (nivel === 'alta') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-status-success-bg px-2.5 py-0.5 text-xs font-semibold text-status-success">
-        <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span>Alta</span>
+      <span className="rounded-md border border-status-success bg-status-success-bg px-2.5 py-0.5 text-xs font-bold text-status-success">
+        Alta
       </span>
     );
   }
   if (nivel === 'media') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-surface-subtle px-2.5 py-0.5 text-xs font-semibold text-fg-muted">
-        <HelpCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span>Média</span>
+      <span className="rounded-md border border-border-strong bg-surface-subtle px-2.5 py-0.5 text-xs font-bold text-fg">
+        Média
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-md bg-status-warning-bg px-2.5 py-0.5 text-xs font-semibold text-status-warning">
-      <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-      <span>Baixa</span>
+    <span className="rounded-md border border-laranja bg-status-warning-bg px-2.5 py-0.5 text-xs font-bold text-status-warning">
+      Baixa
     </span>
   );
 }
@@ -237,14 +234,15 @@ export function ImportadorHolerite({
         initial={prefereMenosMovimento ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         aria-labelledby="titulo-revisao-holerite"
-        className="mb-6 overflow-hidden rounded-2xl border-2 border-azul bg-surface shadow-md"
+        className="cartao-identidade mb-6 overflow-hidden"
       >
+        <div className="h-2 w-full bg-laranja" aria-hidden="true" />
         <div className="flex flex-wrap items-center justify-between gap-3 bg-azul px-5 py-4 text-branco">
           <div>
-            <h3 id="titulo-revisao-holerite" className="font-display text-base font-bold">
+            <h3 id="titulo-revisao-holerite" className="font-display text-base font-extrabold">
               Revisão do holerite importado
             </h3>
-            <p className="mt-0.5 text-xs text-branco/80">
+            <p className="mt-0.5 text-xs text-azul-claro">
               Confira ou edite os valores detectados antes de aplicar ao cálculo.
               {resultadoRevisao.totalPaginas && resultadoRevisao.totalPaginas > 1
                 ? ` Página lida: ${resultadoRevisao.paginaSelecionada} de ${resultadoRevisao.totalPaginas}.`
@@ -256,7 +254,7 @@ export function ImportadorHolerite({
             <button
               type="button"
               onClick={() => setMostrarMiniatura((v) => !v)}
-              className="rounded-lg border border-branco/30 bg-branco/10 px-3 py-1.5 text-xs font-semibold text-branco transition-colors duration-150 hover:bg-branco/20"
+              className="rounded-xl border-2 border-tinta bg-branco px-3.5 py-1.5 text-xs font-extrabold text-tinta"
             >
               {mostrarMiniatura ? 'Ocultar pré-visualização' : 'Mostrar pré-visualização'}
             </button>
@@ -265,13 +263,13 @@ export function ImportadorHolerite({
 
         <div className="p-5">
           {mostrarMiniatura && resultadoRevisao.miniaturaDataUrl && (
-            <div className="mb-4 flex items-center gap-4 rounded-xl border border-border bg-surface-subtle p-3.5">
+            <div className="mb-4 flex items-center gap-4 rounded-xl border-2 border-border bg-surface-subtle p-3.5">
               <img
                 src={resultadoRevisao.miniaturaDataUrl}
                 alt="Miniatura temporária do holerite"
                 className="max-h-24 rounded-lg border border-border object-contain"
               />
-              <p className="text-xs text-fg-muted">
+              <p className="text-xs font-medium text-fg-muted">
                 Pré-visualização local temporária. O arquivo e o texto são descartados da memória
                 assim que você aplicar ou descartar esta revisão.
               </p>
@@ -284,10 +282,10 @@ export function ImportadorHolerite({
               aria-live="polite"
               className="mb-4 rounded-xl border-2 border-laranja bg-status-warning-bg p-4"
             >
-              <p className="text-xs font-bold text-status-warning">
+              <p className="text-xs font-extrabold text-status-warning">
                 Conferência cruzada identificou divergências
               </p>
-              <ul className="mt-1.5 list-inside list-disc space-y-1 text-xs text-fg">
+              <ul className="mt-1.5 list-inside list-disc space-y-1 text-xs font-medium text-fg">
                 {inconsistenciasAtuais.map((inc, i) => (
                   <li key={`${inc.codigo}-${i}`}>{inc.mensagem}</li>
                 ))}
@@ -299,16 +297,16 @@ export function ImportadorHolerite({
             <div
               role="alert"
               aria-live="assertive"
-              className="mb-4 rounded-xl border-2 border-status-error bg-status-error-bg p-3 text-xs font-semibold text-status-error"
+              className="mb-4 rounded-xl border-2 border-status-error bg-status-error-bg p-3 text-xs font-bold text-status-error"
             >
               Confirme ou edite os campos com confiança Baixa antes de aplicar ao formulário.
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-xl border border-border">
+          <div className="overflow-x-auto rounded-xl border-2 border-border">
             <table className="w-full min-w-[560px] border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-border bg-surface-subtle text-xs font-bold text-fg-muted">
+                <tr className="border-b-2 border-border bg-surface-subtle text-xs font-extrabold text-fg">
                   <th className="px-3.5 py-2.5">Campo</th>
                   <th className="px-3.5 py-2.5">Valor detectado</th>
                   <th className="px-3.5 py-2.5">Confiança</th>
@@ -328,11 +326,11 @@ export function ImportadorHolerite({
                       key={campo.chave}
                       className={
                         exigeConfirmacao && !confirmadosBaixa[campo.chave]
-                          ? 'bg-status-warning-bg/60'
+                          ? 'bg-status-warning-bg'
                           : ''
                       }
                     >
-                      <td className="px-3.5 py-2.5 font-semibold text-fg">
+                      <td className="px-3.5 py-2.5 font-bold text-fg">
                         <label htmlFor={`revisao-${campo.chave}`}>{campo.rotulo}</label>
                         {campo.referencia && (
                           <span className="ml-1.5 text-xs font-normal text-fg-muted">
@@ -353,7 +351,9 @@ export function ImportadorHolerite({
                             className="campo-tactile tabular-nums !h-9 max-w-[175px] !px-2.5 !text-sm"
                           />
                           {!campo.encontrado && edicoes[campo.chave] === undefined && (
-                            <span className="shrink-0 text-xs text-fg-subtle">Não encontrado</span>
+                            <span className="shrink-0 text-xs font-medium text-fg-subtle">
+                              Não encontrado
+                            </span>
                           )}
                         </div>
                       </td>
@@ -362,7 +362,7 @@ export function ImportadorHolerite({
                           <div className="flex items-center gap-2">
                             <EtiquetaConfianca nivel={campo.confianca} />
                             {exigeConfirmacao && (
-                              <label className="inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-fg">
+                              <label className="inline-flex cursor-pointer items-center gap-1 text-xs font-bold text-fg">
                                 <input
                                   type="checkbox"
                                   checked={Boolean(confirmadosBaixa[campo.chave])}
@@ -379,7 +379,7 @@ export function ImportadorHolerite({
                             )}
                           </div>
                         ) : (
-                          <span className="text-xs text-fg-subtle">Ausente</span>
+                          <span className="text-xs font-medium text-fg-subtle">Ausente</span>
                         )}
                       </td>
                       <td
@@ -399,14 +399,14 @@ export function ImportadorHolerite({
             <button
               type="button"
               onClick={limparMemoriaRevisao}
-              className="rounded-xl border-2 border-border-strong bg-surface px-4 py-2.5 text-sm font-semibold text-fg transition-colors duration-150 hover:border-brand"
+              className="btn-superficie-tactile text-sm"
             >
               Descartar
             </button>
             <button
               type="button"
               onClick={aplicarAoFormulario}
-              className="rounded-xl bg-laranja px-5 py-2.5 text-sm font-bold text-tinta shadow-sm transition-colors duration-150 hover:bg-laranja-hover"
+              className="btn-laranja-tactile text-sm"
             >
               Aplicar ao formulário
             </button>
@@ -425,149 +425,155 @@ export function ImportadorHolerite({
       }}
       onDragLeave={() => setArrastando(false)}
       onDrop={aoSoltarArquivo}
+      whileHover={prefereMenosMovimento ? undefined : { y: -2 }}
       animate={arrastando && !prefereMenosMovimento ? { scale: 1.01 } : { scale: 1 }}
-      className={`mb-6 rounded-2xl border-2 border-dashed bg-surface p-5 transition-colors duration-150 ${
-        arrastando ? 'border-laranja bg-surface-subtle' : 'border-border-strong'
+      className={`cartao-identidade mb-6 overflow-hidden transition-colors duration-150 ${
+        arrastando ? '!border-laranja bg-surface-warm' : ''
       }`}
     >
-      <input
-        ref={inputArquivoRef}
-        type="file"
-        id="input-upload-holerite"
-        accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
-        onChange={aoSelecionarInput}
-        className="sr-only"
-      />
-      <input
-        ref={inputCameraRef}
-        type="file"
-        id="input-camera-holerite"
-        accept="image/jpeg,image/png"
-        capture="environment"
-        onChange={aoSelecionarInput}
-        className="sr-only"
-      />
+      <div className="faixa-tricolor" aria-hidden="true" />
+      <div className="p-5 sm:p-6">
+        <input
+          ref={inputArquivoRef}
+          type="file"
+          id="input-upload-holerite"
+          accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+          onChange={aoSelecionarInput}
+          className="sr-only"
+        />
+        <input
+          ref={inputCameraRef}
+          type="file"
+          id="input-camera-holerite"
+          accept="image/jpeg,image/png"
+          capture="environment"
+          onChange={aoSelecionarInput}
+          className="sr-only"
+        />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h3 id="titulo-importar-holerite" className="font-display text-base font-bold text-fg">
-              Importar holerite
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3
+              id="titulo-importar-holerite"
+              className="font-display text-base font-extrabold text-fg sm:text-lg"
+            >
+              Tem o holerite?
             </h3>
-            <span className="rounded-md bg-surface-subtle px-2.5 py-0.5 text-xs font-semibold text-brand">
-              Seus dados ficam no seu dispositivo.
-            </span>
+            <p className="mt-1 text-xs font-medium text-fg-muted">
+              Importe seu PDF, JPG ou PNG (até 10 MB) para preencher automaticamente ou digite
+              abaixo.
+            </p>
           </div>
-          <p className="mt-1 text-xs text-fg-muted">
-            PDF, JPG ou PNG, até 10 MB. O arquivo é lido no seu dispositivo e não é armazenado.
-          </p>
+
+          {!etapaAtual && (
+            <div className="flex shrink-0 flex-wrap items-center gap-2.5">
+              <label
+                htmlFor="input-upload-holerite"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    inputArquivoRef.current?.click();
+                  }
+                }}
+                className="btn-azul-tactile text-xs sm:text-sm"
+              >
+                <FileUp className="h-4 w-4 shrink-0 text-laranja" aria-hidden="true" />
+                <span>Selecionar holerite</span>
+              </label>
+
+              <label
+                htmlFor="input-camera-holerite"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    inputCameraRef.current?.click();
+                  }
+                }}
+                className="btn-superficie-tactile text-xs sm:hidden"
+              >
+                <Camera className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+                <span>Câmera</span>
+              </label>
+
+              <button
+                type="button"
+                onClick={onPreencherManualmente}
+                className="btn-superficie-tactile text-xs sm:text-sm"
+              >
+                <Edit3 className="h-4 w-4 shrink-0 text-laranja" aria-hidden="true" />
+                <span>Preencher manualmente</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {!etapaAtual && (
-          <div className="flex shrink-0 flex-wrap items-center gap-2.5">
-            <label
-              htmlFor="input-upload-holerite"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  inputArquivoRef.current?.click();
-                }
-              }}
-              className="cursor-pointer rounded-xl bg-azul px-4 py-2.5 text-xs font-bold text-branco shadow-xs transition-transform duration-150 hover:-translate-y-0.5 hover:bg-azul-escuro"
-            >
-              Selecionar holerite
-            </label>
+        {etapaAtual && (
+          <div role="status" aria-live="polite" className="mt-4 border-t-2 border-border pt-3.5">
+            <div className="flex items-center justify-between text-xs font-extrabold text-fg">
+              <span>{etapaAtual}</span>
+              <span className="tabular-nums">
+                {ETAPAS_LEITURA.indexOf(etapaAtual) + 1}/{ETAPAS_LEITURA.length}
+              </span>
+            </div>
+            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full border border-border-strong bg-surface-subtle">
+              <motion.div
+                className="h-full bg-laranja"
+                initial={false}
+                animate={{
+                  width: `${((ETAPAS_LEITURA.indexOf(etapaAtual) + 1) / ETAPAS_LEITURA.length) * 100}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
 
-            <label
-              htmlFor="input-camera-holerite"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  inputCameraRef.current?.click();
-                }
-              }}
-              className="cursor-pointer rounded-xl border-2 border-border-strong bg-surface px-3.5 py-2 text-xs font-semibold text-fg sm:hidden"
-            >
-              Câmera
-            </label>
-
+        {arquivoAguardandoSenha && (
+          <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border-2 border-border bg-surface-subtle p-3.5">
+            <div className="min-w-[200px] flex-1">
+              <label htmlFor="senha-pdf-input" className="block text-xs font-bold text-fg">
+                Senha do PDF protegido
+              </label>
+              <input
+                id="senha-pdf-input"
+                type="password"
+                value={senhaPdf}
+                onChange={(e) => setSenhaPdf(e.target.value)}
+                placeholder="Digite a senha para abrir"
+                className="campo-tactile mt-1"
+              />
+            </div>
             <button
               type="button"
-              onClick={onPreencherManualmente}
-              className="rounded-xl border-2 border-border-strong bg-surface px-3.5 py-2 text-xs font-semibold text-fg transition-colors duration-150 hover:border-brand hover:text-brand"
+              onClick={() => void iniciarProcessamento(arquivoAguardandoSenha, senhaPdf)}
+              className="btn-azul-tactile text-xs"
+            >
+              Desbloquear PDF
+            </button>
+          </div>
+        )}
+
+        {erroMensagem && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="mt-3.5 flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-status-error bg-status-error-bg px-4 py-3 text-xs font-bold text-status-error"
+          >
+            <span>{erroMensagem}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setErroMensagem(null);
+                onPreencherManualmente();
+              }}
+              className="rounded-lg border border-status-error bg-surface px-2.5 py-1 font-extrabold text-status-error underline"
             >
               Preencher manualmente
             </button>
           </div>
         )}
       </div>
-
-      {etapaAtual && (
-        <div role="status" aria-live="polite" className="mt-4 border-t border-border pt-3.5">
-          <div className="flex items-center justify-between text-xs font-semibold text-fg">
-            <span>{etapaAtual}</span>
-            <span className="tabular-nums">
-              {ETAPAS_LEITURA.indexOf(etapaAtual) + 1}/{ETAPAS_LEITURA.length}
-            </span>
-          </div>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-subtle">
-            <motion.div
-              className="h-full bg-laranja"
-              initial={false}
-              animate={{
-                width: `${((ETAPAS_LEITURA.indexOf(etapaAtual) + 1) / ETAPAS_LEITURA.length) * 100}%`,
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {arquivoAguardandoSenha && (
-        <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface-subtle p-3.5">
-          <div className="min-w-[200px] flex-1">
-            <label htmlFor="senha-pdf-input" className="block text-xs font-semibold text-fg">
-              Senha do PDF protegido
-            </label>
-            <input
-              id="senha-pdf-input"
-              type="password"
-              value={senhaPdf}
-              onChange={(e) => setSenhaPdf(e.target.value)}
-              placeholder="Digite a senha para abrir"
-              className="campo-tactile mt-1"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => void iniciarProcessamento(arquivoAguardandoSenha, senhaPdf)}
-            className="h-11 rounded-xl bg-azul px-4 text-xs font-bold text-branco hover:bg-azul-escuro"
-          >
-            Desbloquear PDF
-          </button>
-        </div>
-      )}
-
-      {erroMensagem && (
-        <div
-          role="alert"
-          aria-live="assertive"
-          className="mt-3.5 flex flex-wrap items-center justify-between gap-2 rounded-xl border-2 border-status-error bg-status-error-bg px-4 py-2.5 text-xs font-semibold text-status-error"
-        >
-          <span>{erroMensagem}</span>
-          <button
-            type="button"
-            onClick={() => {
-              setErroMensagem(null);
-              onPreencherManualmente();
-            }}
-            className="underline"
-          >
-            Preencher manualmente
-          </button>
-        </div>
-      )}
     </motion.section>
   );
 }

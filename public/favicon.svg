@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="cobaltGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0033B8" />
+      <stop offset="100%" stop-color="#001D6E" />
+    </linearGradient>
+    <linearGradient id="solarGrad" x1="0" y1="0" x2="64" y2="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF8533" />
+      <stop offset="100%" stop-color="#FD701C" />
+    </linearGradient>
+  </defs>
+  <!-- Base arredondada Azul Cobalto (#002893) -->
+  <rect x="3" y="3" width="58" height="58" rx="15" fill="url(#cobaltGrad)" stroke="#08122E" stroke-width="2" />
+  <!-- Faixa superior Laranja Solar (#FD701C) -->
+  <path d="M5 16C5 9.37258 10.3726 4 17 4H47C53.6274 4 59 9.37258 59 16V17H5V16Z" fill="url(#solarGrad)" />
+  <!-- Visor Branco (#FFFFFF) da calculadora trabalhista -->
+  <rect x="11" y="13" width="42" height="15" rx="5" fill="#FFFFFF" stroke="#08122E" stroke-width="2" />
+  <!-- Símbolo R$ e barra de valor no visor -->
+  <text x="15" y="24" fill="#002893" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="10">R$</text>
+  <rect x="31" y="18" width="17" height="5" rx="2.5" fill="#FD701C" />
+  <!-- Teclas geométricas em Branco e Laranja -->
+  <rect x="11" y="33" width="12" height="9" rx="3" fill="#FFFFFF" />
+  <rect x="26" y="33" width="12" height="9" rx="3" fill="#FFFFFF" />
+  <rect x="41" y="33" width="12" height="9" rx="3" fill="#FD701C" />
+  <rect x="11" y="45" width="12" height="9" rx="3" fill="#FFFFFF" />
+  <rect x="26" y="45" width="12" height="9" rx="3" fill="#FFFFFF" />
+  <!-- Tecla de igualdade em Laranja Solar com destaque -->
+  <rect x="41" y="45" width="12" height="9" rx="3" fill="#FD701C" />
+  <rect x="44" y="47.5" width="6" height="1.6" rx="0.8" fill="#08122E" />
+  <rect x="44" y="50.5" width="6" height="1.6" rx="0.8" fill="#08122E" />
+</svg>
